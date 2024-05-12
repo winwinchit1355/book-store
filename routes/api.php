@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\BookAPIController;
 
@@ -14,5 +13,5 @@ use App\Http\Controllers\API\BookAPIController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-Route::resource('books', BookAPIController::class);
+Route::get('getBooks', [BookAPIController::class, 'index'])->name('get-books');
 

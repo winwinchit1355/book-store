@@ -2,18 +2,30 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use App\Models\Book;
 use Illuminate\Http\Request;
+use App\Responses\ResponseFormat;
+use App\Http\Controllers\Controller;
+use App\Repositories\Interfaces\BookRepositoryInterface;
 
 class BookAPIController extends Controller
 {
+    use ResponseFormat;
+
+    protected $bookRepository;
+
+    public function __construct(BookRepositoryInterface $bookRepository)
+    {
+        $this->bookRepository=$bookRepository;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        $books = $this->bookRepository->all();
+
+        return  $this->apiSuccessResponse($books,'Successfully',200);
     }
 
     /**

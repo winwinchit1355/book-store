@@ -12,7 +12,7 @@ class BookRepository implements BookRepositoryInterface
 {
     public function all() : Collection
     {
-        return Book::orderByDesc('idx')->get();
+        return Book::with(['publisher','content_owner'])->orderByDesc('idx')->get();
     }
 
     public function find($id)
