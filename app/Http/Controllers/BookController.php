@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
+use App\Models\Publisher;
+use App\Models\ContentOwner;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreBookRequest;
+use App\Http\Requests\UpdateBookRequest;
 use App\Repositories\Interfaces\BookRepositoryInterface;
 
 class BookController extends Controller
@@ -28,15 +32,19 @@ class BookController extends Controller
      */
     public function create()
     {
-        //
+        $publishers = Publisher::all();
+        $content_owners = ContentOwner::all();
+        return view('admin.books.create',compact('publishers','content_owners'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreBookRequest $request)
     {
-        //
+        $this->bookRepository->store($request->all());
+
+        return redirect()->route('books.index')->with('success', 'Book Create Successfully!');
     }
 
     /**
@@ -52,15 +60,19 @@ class BookController extends Controller
      */
     public function edit(Book $book)
     {
-        //
+        $publishers = Publisher::all();
+        $content_owners = ContentOwner::all();
+        return view('admin.books.edit',compact('publishers','content_owners','book'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Book $book)
+    public function update(UpdateBookRequest $request, Book $book)
     {
-        //
+        $this->bookRepository->update($request->all(),$book);
+
+        return redirect()->route('books.index')->with('success', 'Book Update Successfully!');
     }
 
     /**
@@ -68,6 +80,9 @@ class BookController extends Controller
      */
     public function destroy(Book $book)
     {
-        //
+        $book->deleteImage($book->cover_photo);
+        $this->bookRepository->softDelete($book);
+
+        return redirect()->back()->with('success', 'Book Delete Successfully!');
     }
 }

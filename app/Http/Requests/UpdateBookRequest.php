@@ -11,7 +11,7 @@ class UpdateBookRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,8 +21,37 @@ class UpdateBookRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            //
+        $rules = [
+            'co_id' => [
+                'string',
+                'required',
+            ],
+            'publisher_id' => [
+                'string',
+                'required',
+            ],
+            'bookname' => [
+                'required',
+                'string',
+            ],
+            'cover_photo' => [
+                'required',
+                'string'
+            ],
+            'price' => [
+                'integer',
+            ],
+            'cover_photo' => [
+                'required', 'image',
+                'max:1048576', 'mimes:jpg,png,jpeg,gif,svg',
+                function ($attribute, $value, $fail) {
+                    /** @var UploadedFile $value */
+                    $extension = strtolower($value->getClientOriginalExtension());
+                    if ($extension === 'jfif') {
+                        $fail('The uploaded image must be a valid image file (JPEG, PNG, JPG, GIF, SVG).');
+                    }
+                }]
         ];
+        return $rules;
     }
 }

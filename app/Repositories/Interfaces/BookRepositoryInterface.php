@@ -8,5 +8,4 @@ Interface BookRepositoryInterface {
     public function store($data);
     public function update($data, $book);
     public function softDelete($book);
-    public function forceDelete($book);
 }

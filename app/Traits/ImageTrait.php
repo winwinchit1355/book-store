@@ -2,22 +2,23 @@
 
 namespace App\Traits;
 
-use File;
+
 use Exception;
-use Illuminate\Support\Facades\Auth;
+use Storage;
+use Illuminate\Support\Carbon;
 
 trait ImageTrait
 {
     public static function deleteImage($file)
     {
-        if (Storage::exists($file)) {
-            Storage::delete($file);
+        if (Storage::disk('public')->exists($file)) {
+            Storage::disk('public')->delete($file);
 
             return true;
         }
-
         return false;
     }
+
     public static function makeImage($file, $path)
     {
         try {
@@ -25,17 +26,16 @@ trait ImageTrait
             if (! empty($file)) {
                 $extension = $file->getClientOriginalExtension(); // getting image extension
                 if (! in_array(strtolower($extension), ['jpg', 'gif', 'png', 'jpeg'])) {
-                    throw  new ApiOperationFailedException('invalid image', Response::HTTP_BAD_REQUEST);
+                    return redirect()->back()->with('fail','Invalid image');
                 }
                 $date = Carbon::now()->format('Y-m-d');
-                $fileName = $date.'_'.uniqid().'.'.$extension;
-                Storage::putFileAs($path, $file, $fileName, 'public');
+                $fileName = $path.$date.'_'.uniqid().'.'.$extension;
+                Storage::disk('public')->put($fileName,file_get_contents($file));
             }
 
             return $fileName;
         } catch (Exception $e) {
-            Log::info($e->getMessage());
-            throw new ApiOperationFailedException($e->getMessage(), $e->getCode());
+            return redirect()->back()->with('error',$e->getMessage());
         }
     }
 

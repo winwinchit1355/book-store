@@ -12,7 +12,7 @@ class BookRepository implements BookRepositoryInterface
 {
     public function all() : Collection
     {
-        return Book::orderByDesc('created_timetick')->get();
+        return Book::orderByDesc('idx')->get();
     }
 
     public function find($id)
@@ -24,14 +24,13 @@ class BookRepository implements BookRepositoryInterface
     {
         try {
             DB::beginTransaction();
+            $maxId = Book::max('idx');
+            $data['book_uniq_idx'] = 'BOK' . str_pad($maxId+1, 4, '0', STR_PAD_LEFT);;
             $book = Book::create($data);
-            if (!empty($data['path']) ) {
-                $file=$data['path'];
-                $fileName=time().'.'.$file->getClientOriginalExtension();
-                $imagePath = Book::IMAGE_PATH.'/'.$fileName;
-
-                $file->move(public_path(Book::IMAGE_PATH), $fileName);
-                $book->path = $imagePath;
+            if(!empty($data['cover_photo']))
+            {
+                $imagePath = Book::makeImage($data['cover_photo'], Book::IMAGE_PATH);
+                $book->cover_photo= $imagePath;
                 $book->save();
             }
             DB::commit();
@@ -46,23 +45,18 @@ class BookRepository implements BookRepositoryInterface
     {
         try {
             DB::beginTransaction();
-            $book->update($data);
-
-            if(!empty($data['file']))
-            {
-                $path=public_path(\App\Helpers\common::getImageSrc($book->path));;
-                if (File::exists($path)) {
-                    File::delete($path);
-                }
-                $file=$data['file'];
-                $fileName=time().'.'.$file->getClientOriginalExtension();
-                $imagePath = Book::IMAGE_PATH.'/'.$fileName;
-
-                $file->move(public_path(Book::IMAGE_PATH), $fileName);
-
-                $book->path = $imagePath;
-                $book->save();
+            if(!empty($data['cover_photo'])) {
+                $cover_photo = $data['cover_photo'];
+                unset($data['cover_photo']);
             }
+            $book->update($data);
+            if(!empty($cover_photo))
+            {
+                $book->deleteImage($book->cover_photo); // delete old image;
+                $imagePath = Book::makeImage($cover_photo, Book::IMAGE_PATH);
+                $book->cover_photo= $imagePath;
+            }
+            $book->save();
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
@@ -74,11 +68,6 @@ class BookRepository implements BookRepositoryInterface
     public function softDelete($book)
     {
         $book->delete();
-    }
-
-    public function forceDelete($book)
-    {
-        $book->forceDelete();
     }
 
 }
